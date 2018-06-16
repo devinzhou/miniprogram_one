@@ -14,15 +14,17 @@
           <text class="item-title">{{item.title}}</text>
         </div>
       </div>
+      <div style="background-color: #F6f6f6; height: 20rpx;width: 100%;"></div>
     </cell>
 
     <!-- 个人主页每一项 -->
-    <cell>
-      <div class="item-other">
-        <image></image>
-        <text></text>
-        <image></image>
+    <cell v-for="(item, index) in bottomBarData">
+      <div class="item-other" >
+        <image class="item-other-icon" :src="item.icon"></image>
+        <text class="item-other-text">{{item.title}}</text>
+        <image class="item-other-right-arrow" :src="rightArrow"></image>
       </div>
+      <div style="background-color: #F6f6f6; width: 100%; height: 1rpx;"></div>
     </cell>
 
   </list>
@@ -31,7 +33,12 @@
 import card from '@/components/card';
 import headerImage from '@/pages/personal/src/tmp_person_header.png';
 import defaultUserIcon from '@/pages/personal/src/default_header_icon.png';
-
+import rightArrow from '@/pages/personal/src/right.png';
+import iconAbout from '@/pages/personal/src/icon_about.png';
+import iconInvite from '@/pages/personal/src/icon_inve.png';
+import iconComment from '@/pages/personal/src/icon_comment.png';
+import iconQuestion from '@/pages/personal/src/icon_question.png';
+import iconSetting from '@/pages/personal/src/icon_setting.png';
 export default {
   data () {
     return {
@@ -39,11 +46,35 @@ export default {
       userInfo: {},
       headImage: headerImage,
       userIcon: defaultUserIcon,
+      rightArrow:rightArrow,
       nickName: '未登陆',
       personBar: [
         {title: '无忧币', value:'23423'},
         {title: '连续打卡', value: '80'},
         {title: '帮助过的人', value: '23456'}
+      ],
+      bottomBarData:[
+        {
+          icon: iconAbout,
+          title: '关于无忧币',
+          id:1
+        },
+        {
+          icon: iconComment,
+          title: '我要留言'
+        },
+        {
+          icon: iconInvite,
+          title: '邀请函'
+        },
+        {
+          icon: iconQuestion,
+          title: '意见反馈'
+        },
+        {
+          icon: iconSetting,
+          title: '设置'
+        }
       ]
     }
   },
@@ -111,7 +142,7 @@ export default {
   }
 
   .person_info_bar {
-    width: 750rpx;
+    width: 100%;
     height: 140rpx;
     display: flex;
     flex-direction: row;
@@ -127,6 +158,7 @@ export default {
   .item-title {
     font-size: 24rpx;
     color: #999999;
+    margin-top: 10rpx;
     line-height: 34rpx;
   }
   .item-value {
@@ -137,25 +169,34 @@ export default {
   }
 
   .item-other {
-    width: 750rpx;
-    height: 120rpx;
+    width: 100%;
+    height: 90rpx;
     display: flex;
+    align-items: center;
     flex-direction: row;
     justify-items: center;
-    padding-left: 30px;
-    padding-right: 30px;
   }
 
   .item-other-icon {
-
+    width: 48rpx;
+    height: 48rpx;
+    margin-left: 30rpx;
   }
 
   .item-other-text {
-
+    line-height: 90rpx;
+    font-size: 36rpx;
+    text-align: center;
+    margin-left: 20rpx;
+    color: #333333;
   }
 
   .item-other-right-arrow {
-
+    position: absolute;
+    right: 0;
+    width: 30rpx;
+    height: 30rpx;
+    margin-right: 30rpx;
   }
 
 </style>
