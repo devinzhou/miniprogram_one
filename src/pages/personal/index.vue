@@ -4,7 +4,8 @@
         <div class="main-header">
             <image :src="headImage" resize="stretch" class="main-header-bg"></image>
             <image class="header-icon" :src="userIcon" resize="contain"></image>
-            <text class="nick-name">{{nickName}}</text>
+            <text class="nick-name" v-if="isLogin">{{nickName}}</text>
+            <button open-type="getUserInfo" class="login-bar" v-if="!isLogin">未登陆</button>
         </div>
     </header>
     <cell>
@@ -44,10 +45,12 @@ export default {
     return {
       motto: 'Hello World',
       userInfo: {},
+      userInfoWX: {},
       headImage: headerImage,
       userIcon: defaultUserIcon,
       rightArrow:rightArrow,
-      nickName: '未登陆',
+      nickName: '',
+      isLogin: false,
       personBar: [
         {title: '无忧币', value:'23423'},
         {title: '连续打卡', value: '80'},
@@ -78,23 +81,47 @@ export default {
       ]
     }
   },
-
-  components: {
-    card
+  created(){
+    this.getUserInfo ();
   },
-
+  components: {
+  },
   methods: {
     bindViewTap () {
-      const url = '../logs/main'
-      wx.navigateTo({ url })
     },
     getUserInfo () {
+      let that = this;
       // 调用登录接口
       wx.login({
         success: () => {
           wx.getUserInfo({
             success: (res) => {
-              this.userInfo = res.userInfo
+              that.userInfoWX = res.userInfo;
+              console.log(JSON.stringify(res));
+              wx.request({
+                url: 'https://www.wuyouzhidi.com/login',
+                data: {
+                  imageUrl: that.userInfoWX.avatarUrl,
+                  name: that.userInfoWX.nickName,
+                  source: "weixin",
+                  login: res.signature
+                },
+                header: {
+                  'content-type': 'application/json'
+                },
+                method:'POST',
+                success: function(result){
+                    that.isLogin = true;
+                    that.userInfo = result.data.data.userInfo;
+                    if (that.userInfo) {
+                      that.userIcon = that.userInfo.imageUrl;
+                      that.nickName = that.userInfo.name;
+                    }
+                },
+                fail: function (res) {
+                }
+              })
+
             }
           })
         }
@@ -113,6 +140,7 @@ export default {
 </script>
 
 <style scoped>
+  @import "../../../static/css/base_css.wxss";
   .main-header {
     width: 750rpx;
     height: 400rpx;
@@ -127,6 +155,15 @@ export default {
     margin-left: 10rpx;
     margin-bottom: 40rpx;
   }
+
+  .login-bar {
+    font-size: 30rpx;
+    align-self: flex-end;
+    margin-left: 10rpx;
+    margin-bottom: 40rpx;
+    background-color: transparent;
+    color: white;
+  }
   .main-header-bg {
     width: 750rpx;
     height: 400rpx;
@@ -139,6 +176,7 @@ export default {
     height:120rpx;
     margin: 20rpx;
     align-self: flex-end;
+    border-radius: 50%;
   }
 
   .person_info_bar {
