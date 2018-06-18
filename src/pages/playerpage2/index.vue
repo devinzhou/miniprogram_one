@@ -22,7 +22,10 @@
           <view><text class="name">{{audioList[audioIndex].title}}</text></view>
           <!--<view><text class="author">-- {{audioList[audioIndex].author}} --</text></view>-->
         </view>
-        <image :src="images.listIcon" class="icon-list" @click="bindTapList"></image>
+        <div class="icon-list">
+          <image :src="images.listIcon" class="icon-list-img" @click="bindTapList"></image>
+          <text v-if="false" class="icon-list-text">切换主题</text>
+        </div>
       </view>
       <view class="slider-container">
         <text class="slider-time">{{currentPosition === 0 ? '' : currentPosition}}</text>
@@ -369,10 +372,19 @@ export default {
     text-align: center;
   }
   .icon-list{
-    width: 54rpx;
-    height: 36rpx;
+
     margin: 0 30rpx 0 0;
   }
+  .icon-list-img {
+    width: 54rpx;
+    height: 36rpx;
+  }
+
+  .icon-list-text {
+    color: #FFFFFF;
+    font-size: 26rpx;
+  }
+
   .slider-container{
     position: absolute;
     bottom: 140rpx;

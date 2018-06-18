@@ -104,7 +104,7 @@ export default {
                   imageUrl: that.userInfoWX.avatarUrl,
                   name: that.userInfoWX.nickName,
                   source: "weixin",
-                  login: res.signature
+                  login: that.userInfoWX.nickName
                 },
                 header: {
                   'content-type': 'application/json'
