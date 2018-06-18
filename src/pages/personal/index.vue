@@ -5,7 +5,7 @@
             <image :src="headImage" resize="stretch" class="main-header-bg"></image>
             <image class="header-icon" :src="userIcon" resize="contain"></image>
             <text class="nick-name" v-if="isLogin">{{nickName}}</text>
-            <button open-type="getUserInfo" class="login-bar" v-if="!isLogin">未登陆</button>
+            <button ref="loginBtn" open-type="getUserInfo" class="login-bar" v-if="!isLogin">未登陆</button>
         </div>
     </header>
     <cell>
@@ -111,11 +111,13 @@ export default {
                 },
                 method:'POST',
                 success: function(result){
-                    that.isLogin = true;
-                    that.userInfo = result.data.data.userInfo;
-                    if (that.userInfo) {
-                      that.userIcon = that.userInfo.imageUrl;
-                      that.nickName = that.userInfo.name;
+                    if (result.success) {
+                      that.isLogin = true;
+                      that.userInfo = result.data.data.userInfo;
+                      if (that.userInfo) {
+                        that.userIcon = that.userInfo.imageUrl;
+                        that.nickName = that.userInfo.name;
+                      }
                     }
                 },
                 fail: function (res) {

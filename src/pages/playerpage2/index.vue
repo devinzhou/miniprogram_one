@@ -2,7 +2,7 @@
   <view class="container">
     <!--第一层层：背景图背景图，高斯模糊-->
     <view class="bg">
-      <image class="poster" :style="{height: audioList[audioIndex].pic ? '1000rpx': '600rpx'}" :src="audioList[audioIndex].pic"></image>
+      <image class="poster" :style="{height: windowHeight + 'px'}" :src="audioList[audioIndex].pic"></image>
     </view>
     <!--第二层层：灰色蒙层-->
     <view class="bg-gray">
@@ -63,9 +63,9 @@
           <view class="name">
             <text class="list-index">{{index}}</text>
           </view>
-          <image class="list-one-poster" :src="item.poster"></image>
+          <image class="list-one-poster" :src="item.pic"></image>
           <view class="list-one-right">
-            <view class="name">{{item.name}}</view>
+            <view class="name">{{item.title}}</view>
             <!--<view class="author">歌手：{{item.author}}</view>-->
           </view>
         </view>
@@ -96,6 +96,7 @@ export default {
     return {
       audioList: debugPlayList().songs,
       audioIndex: 0,
+      windowHeight: 0,
       pauseStatus: true,
       listShow: false,
       timer: '',
@@ -115,6 +116,13 @@ export default {
   },
   mounted() {
     // 使用 wx.createAudioContext 获取 audio 上下文 context
+     this.windowHeight = wx.getSystemInfoSync().windowHeight;
+  },
+  onHide() {
+    this.listShow = false;
+  },
+  onTabItemTap() {
+    this.listShow = false;
   },
   methods: {
     bindSliderchange: function(e) {
@@ -209,7 +217,7 @@ export default {
         if (that.pauseStatus === false) {
           that.play()
         }
-      }, 1000)
+      }, 200)
       wx.setStorageSync('audioIndex', parseInt(e.currentTarget.id, 10))
     },
     play() {
