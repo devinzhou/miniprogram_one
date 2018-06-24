@@ -1,14 +1,15 @@
 <template>
-  <scroll-view scroll-y class="list" @scrolltolower="scrolltolower">
-    <card v-for="(item, index) in allData" :text="item + ' -- ' + index"></card>
+  <scroll-view scroll-y class="list" :style="{height: windowHeight + 'px'}" @scrolltolower="scrolltolower">
+    <card v-for="(item, index) in allData" :item="item"></card>
   </scroll-view>
 </template>
 
 <script>
 import card from '@/components/comment-item-view';
+import requestUtils from '@/utils/request';
+var app = getApp();
 
 //windowHeight
-
 export default {
   data () {
     return {
@@ -16,6 +17,9 @@ export default {
       userInfo: {},
       allData: [],
       currentPage: 0,
+      pageSize: 20,
+      hasMore: true,
+      windowHeight: wx.getSystemInfoSync().windowHeight
     }
   },
   components: {
@@ -24,27 +28,28 @@ export default {
 
   methods: {
     scrolltolower: function (event) {
+      if (!hasMore) return;
       this.loadData(this.currentPage);
     },
     loadData(index) {
+      let that = this;
       if (this.currentPage == index){
-        this.allData = this.allData.concat(
-          [index + '0',
-            index + '1',
-            index + '2',
-            index + '3',
-            index + '4',
-            index + '5',
-            index + '6',
-            index + '7',
-            index + '8',
-          ]);
+        requestUtils.userCommentList(this.currentPage, this.pageSize, app.userInfo.id, function (res) {
+          if (res.data.success) {
+            that.allData.push(...res.data.data);
+
+            if (!res.data.data || res.data.data.length < 1) {
+              that.hasMore = false;
+            }
+          }
+        });
         this.currentPage ++;
       }
     }
   },
 
   created () {
+    this.windowHeight = wx.getSystemInfoSync().windowHeight;
   },
   mounted(){
     this.loadData(this.currentPage);

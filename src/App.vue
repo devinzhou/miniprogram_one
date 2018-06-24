@@ -1,30 +1,71 @@
 <script>
 export default {
   created () {
-    // 调用API从本地缓存中获取数据
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
+    console && console.log("in APP.vue");
+  },
+  methods: {
+    getUserInfo () {
+      let that = this;
+      // 调用登录接口
+      wx.login({
+        success: function (res) {
+          that.onCallbackGetUserInfo(res);
+        }
+      })
+    },
+    onCallbackGetUserInfo(res) {
+      let app = getApp();
+      let that = this;
+      wx.getUserInfo({
+        success: (res) => {
+          that.userInfoWX = res.userInfo;
+          console.log(JSON.stringify(res));
+          wx.request({
+            url: 'https://www.wuyouzhidi.com/login',
+            data: {
+              imageUrl: that.userInfoWX.avatarUrl,
+              name: that.userInfoWX.nickName,
+              source: "weixin",
+              login: that.userInfoWX.nickName
+            },
+            header: {
+              'content-type': 'application/json'
+            },
+            method:'POST',
+            success: function(result){
+              if (result.data.success) {
+                that.isLogin = true;
+                that.userInfo = result.data.data.userInfo;
+                if (that.userInfo) {
+                  that.userIcon = that.userInfo.imageUrl;
+                  that.nickName = that.userInfo.name;
+                  that.testUser = that.userInfo.testUser;
 
-    console.log('app created and cache logs by setStorageSync')
+                  that.personBar[2].value = that.userInfo.helpPeopleNum;
+                  that.personBar[0].value = that.userInfo.carefreeCoin;
+                }
+
+                app.userInfo = that.userInfo;
+                app.homepageData = {
+                  firstPartData: result.data.data.themeIndexList,
+                  secondPartData: result.data.data.themeIndexTestList,
+                  testThemeCommentList: result.data.data.testThemeCommentList
+                }
+                app.onReceiveData && app.onReceiveData();
+              }
+            },
+            fail: function (res) {
+
+            }
+          })
+
+        }
+      }, function () {
+      })
+    }
   }
 }
 </script>
 
 <style>
-.container {
-  height: 100%;
-  display: contents;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-}
-/* this rule will be remove */
-* {
-  transition: width 2s;
-  -moz-transition: width 2s;
-  -webkit-transition: width 2s;
-  -o-transition: width 2s;
-}
 </style>

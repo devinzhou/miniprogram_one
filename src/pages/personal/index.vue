@@ -5,7 +5,7 @@
             <image :src="headImage" resize="stretch" class="main-header-bg"></image>
             <image class="header-icon" :src="userIcon" resize="contain"></image>
             <text class="nick-name" v-if="isLogin">{{nickName}}</text>
-            <button ref="loginBtn" open-type="getUserInfo" class="login-bar" v-if="!isLogin">未登陆</button>
+            <button ref="loginBtn" open-type="getUserInfo" class="login-bar" v-if="!isLogin" @getuserinfo="onCallbackGetUserInfo">未登陆</button>
         </div>
     </header>
     <cell>
@@ -20,7 +20,7 @@
 
     <!-- 个人主页每一项 -->
     <cell v-for="(item, index) in bottomBarData">
-      <div class="item-other" >
+      <div class="item-other" @click="bindViewTap(item, $event)">
         <image class="item-other-icon" :src="item.icon"></image>
         <text class="item-other-text">{{item.title}}</text>
         <image class="item-other-right-arrow" :src="rightArrow"></image>
@@ -40,6 +40,9 @@ import iconInvite from '@/pages/personal/src/icon_inve.png';
 import iconComment from '@/pages/personal/src/icon_comment.png';
 import iconQuestion from '@/pages/personal/src/icon_question.png';
 import iconSetting from '@/pages/personal/src/icon_setting.png';
+
+var app = getApp();
+
 export default {
   data () {
     return {
@@ -52,9 +55,9 @@ export default {
       nickName: '',
       isLogin: false,
       personBar: [
-        {title: '无忧币', value:'23423'},
-        {title: '连续打卡', value: '80'},
-        {title: '帮助过的人', value: '23456'}
+        {title: '无忧币', value: 0},
+        {title: '连续打卡', value: 0},
+        {title: '帮助过的人', value: 0}
       ],
       bottomBarData:[
         {
@@ -64,19 +67,18 @@ export default {
         },
         {
           icon: iconComment,
-          title: '我要留言'
+          title: '我要留言',
+          id:2
         },
         {
           icon: iconInvite,
-          title: '邀请函'
+          title: '邀请函',
+          id:3
         },
         {
           icon: iconQuestion,
-          title: '意见反馈'
-        },
-        {
-          icon: iconSetting,
-          title: '设置'
+          title: '意见反馈',
+          id:4
         }
       ]
     }
@@ -84,53 +86,90 @@ export default {
   created(){
     this.getUserInfo ();
   },
+  mounted() {
+  },
   components: {
   },
   methods: {
-    bindViewTap () {
+    bindViewTap (item, event) {
+
+      if (item && item.id == 2){
+
+        if (!app.userInfo || !app.userInfo.id) {
+          wx.showToast({
+            title:'请先登录',
+            icon:'none',
+            mask:true
+          })
+          return;
+        }
+
+        wx.navigateTo({
+          "url": "/pages/commentlist/main"
+        })
+      }
+
     },
     getUserInfo () {
       let that = this;
       // 调用登录接口
       wx.login({
-        success: () => {
-          wx.getUserInfo({
-            success: (res) => {
-              that.userInfoWX = res.userInfo;
-              console.log(JSON.stringify(res));
-              wx.request({
-                url: 'https://www.wuyouzhidi.com/login',
-                data: {
-                  imageUrl: that.userInfoWX.avatarUrl,
-                  name: that.userInfoWX.nickName,
-                  source: "weixin",
-                  login: that.userInfoWX.nickName
-                },
-                header: {
-                  'content-type': 'application/json'
-                },
-                method:'POST',
-                success: function(result){
-                    if (result.success) {
-                      that.isLogin = true;
-                      that.userInfo = result.data.data.userInfo;
-                      if (that.userInfo) {
-                        that.userIcon = that.userInfo.imageUrl;
-                        that.nickName = that.userInfo.name;
-                      }
-                    }
-                },
-                fail: function (res) {
-                }
-              })
-
-            }
-          })
+        success: function (res) {
+          that.onCallbackGetUserInfo(res);
         }
       })
     },
     clickHandle (msg, ev) {
       console.log('clickHandle:', msg, ev)
+    },
+    onCallbackGetUserInfo(res) {
+      let that = this;
+      wx.getUserInfo({
+        success: (res) => {
+          that.userInfoWX = res.userInfo;
+          console.log(JSON.stringify(res));
+          wx.request({
+            url: 'https://www.wuyouzhidi.com/login',
+            data: {
+              imageUrl: that.userInfoWX.avatarUrl,
+              name: that.userInfoWX.nickName,
+              source: "weixin",
+              login: that.userInfoWX.nickName
+            },
+            header: {
+              'content-type': 'application/json'
+            },
+            method:'POST',
+            success: function(result){
+              if (result.data.success) {
+                that.isLogin = true;
+                that.userInfo = result.data.data.userInfo;
+                if (that.userInfo) {
+                  that.userIcon = that.userInfo.imageUrl;
+                  that.nickName = that.userInfo.name;
+                  that.testUser = that.userInfo.testUser;
+
+                  that.personBar[2].value = that.userInfo.helpPeopleNum;
+                  that.personBar[0].value = that.userInfo.carefreeCoin;
+                }
+
+                app.userInfo = that.userInfo;
+                app.homepageData = {
+                  firstPartData: result.data.data.themeIndexList,
+                  secondPartData: result.data.data.themeIndexTestList,
+                  testThemeCommentList: result.data.data.testThemeCommentList
+                };
+                app.onReceiveData && app.onReceiveData();
+              }
+            },
+            fail: function (res) {
+            }
+          })
+
+        }
+      }, function () {
+        debugger;
+      })
     }
   },
 
@@ -164,7 +203,8 @@ export default {
     margin-left: 10rpx;
     margin-bottom: 40rpx;
     background-color: transparent;
-    color: white;
+    text-decoration: underline;
+    color: red;
   }
   .main-header-bg {
     width: 750rpx;

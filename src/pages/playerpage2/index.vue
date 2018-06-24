@@ -1,86 +1,107 @@
 <template>
-  <view class="container">
-    <!--第一层层：背景图背景图，高斯模糊-->
-    <view class="bg">
-      <image class="poster" :style="{height: windowHeight + 'px'}" :src="audioList[audioIndex].pic"></image>
-    </view>
-    <!--第二层层：灰色蒙层-->
-    <view class="bg-gray">
-    </view>
-    <!--第三层：player层-->
-    <view :style="{ display: listShow === true ? 'none' : '' }">
-      <!--旋转图-->
-      <view class="rotate-disk-container">
-        <view :class="['rotate-disk', pauseStatus === false ? 'rotate-360' : 'rotate-360-paused']">
-          <image class="poster"  :src="audioList[audioIndex].pic"></image>
-        </view>
-      </view>
-      <!--操作-->
-      <view class="title-container">
-        <view class="title-left"></view>
-        <view class="text">
-          <view><text class="name">{{audioList[audioIndex].title}}</text></view>
-          <!--<view><text class="author">-- {{audioList[audioIndex].author}} --</text></view>-->
-        </view>
-        <div class="icon-list">
-          <image :src="images.listIcon" class="icon-list-img" @click="bindTapList"></image>
-          <text v-if="false" class="icon-list-text">切换主题</text>
-        </div>
-      </view>
-      <view class="slider-container">
-        <text class="slider-time">{{currentPosition === 0 ? '' : currentPosition}}</text>
-        <slider
-          :value="sliderValue"
-          @change="bindSliderchange"
-          activeColor="#13beec"
-          style="width: 62%;margin: 0;"
-          block-size="12"
-          block-color="#13beec"
-        />
-        <text class="slider-time">{{duration === 0 ? '' : duration}}</text>
-      </view>
-      <view class="operation-container">
-        <image :src="images.preIcon" class="icon-prev" @click="bindTapPrev"></image>
-        <image
-          :src="pauseStatus === false ? images.pauseIcon : images.playIcon"
-          class="icon-play" @click="bindTapPlay"
-        >
-        </image>
-        <image :src="images.nextIcon" class="icon-next" @click="bindTapNext"></image>
-      </view>
-    </view>
-    <!--第五层：列表页-->
-    <scroll-view
-      class="list"
-      scroll-y
-      :style="{display: listShow === true ? '' : 'none'}"
-      :scroll-top="audioIndex * 68"
-    >
-      <view v-for="(item,index) in audioList">
-        <view
-          :id="index"
-          :class="['list-one',index === audioIndex ? 'list-one-choose' : '']"
-          hover-class="list-one-choose"
-          @click="bindTapChoose"
-        >
-          <view class="name">
-            <text class="list-index">{{index}}</text>
+  <div style="height: 100%">
+    <scroller scroll-y>
+      <div>
+        <view class="container" style="height: (we">
+          <!--第一层层：背景图背景图，高斯模糊-->
+          <view class="bg">
+            <image class="poster" v-if="curPlayList[audioIndex]"  :style="{height: windowHeight + 'px'}" :src="curPlayList[audioIndex].imageUrl"></image>
           </view>
-          <image class="list-one-poster" :src="item.pic"></image>
-          <view class="list-one-right">
-            <view class="name">{{item.title}}</view>
-            <!--<view class="author">歌手：{{item.author}}</view>-->
+          <!--第二层层：灰色蒙层-->
+          <view class="bg-gray">
           </view>
+          <!--第三层：player层-->
+          <view :style="{ display: listShow === true ? 'none' : '' }">
+            <!--旋转图-->
+            <view class="rotate-disk-container">
+              <view :class="['rotate-disk', pauseStatus === false ? 'rotate-360' : 'rotate-360-paused']">
+                <image class="poster" v-if="curPlayList[audioIndex]"  :src="curPlayList[audioIndex].imageUrl"></image>
+              </view>
+            </view>
+            <!--操作-->
+            <view class="title-container">
+              <view class="title-left"></view>
+              <view class="text">
+                <view><text class="name"  v-if="curPlayList[audioIndex]" >{{curPlayList[audioIndex].title}}</text></view>
+                <!--<view><text class="author">-- {{curPlayList[audioIndex].author}} --</text></view>-->
+              </view>
+              <div class="icon-list">
+                <image :src="images.listIcon" class="icon-list-img" @click="bindTapList"></image>
+                <text v-if="false" class="icon-list-text">切换主题</text>
+              </div>
+            </view>
+            <view class="slider-container">
+              <text class="slider-time">{{currentPosition === 0 ? '' : currentPosition}}</text>
+              <slider
+                :value="sliderValue"
+                @change="bindSliderchange"
+                activeColor="#13beec"
+                style="width: 62%;margin: 0;"
+                block-size="12"
+                block-color="#13beec"
+              />
+              <text class="slider-time">{{duration === 0 ? '' : duration}}</text>
+            </view>
+            <view class="operation-container">
+              <image :src="images.preIcon" class="icon-prev" @click="bindTapPrev"></image>
+              <image
+                :src="pauseStatus === false ? images.pauseIcon : images.playIcon"
+                class="icon-play" @click="bindTapPlay"
+              >
+              </image>
+              <image :src="images.nextIcon" class="icon-next" @click="bindTapNext"></image>
+
+              <div class="icon-comment-container" @click="onClickComment">
+                <image :src="images.iconComment" class="icon-comment"></image>
+                <text class="comment-text">评论</text>
+              </div>
+            </view>
+          </view>
+          <!--第五层：列表页-->
+          <scroll-view
+            class="list"
+            scroll-y
+            :style="{display: listShow === true ? '' : 'none'}"
+            :scroll-top="audioIndex * 68"
+          >
+            <view v-for="(item,index) in audioList">
+              <view
+                :id="index"
+                :class="['list-one']"
+                hover-class="list-one-choose"
+                @click="bindTapChoose(item, $event)"
+              >
+                <view class="name">
+                  <text class="list-index">{{index}}</text>
+                </view>
+                <image class="list-one-poster" :src="item.imageUrl"></image>
+                <view class="list-one-right">
+                  <view class="name">{{item.title}}</view>
+                  <!--<view class="author">歌手：{{item.author}}</view>-->
+                </view>
+              </view>
+            </view>
+          </scroll-view>
         </view>
-      </view>
-    </scroll-view>
-    <!--<audio id="audio" src="{{audioList[audioIndex].src}}" style="display: none"></audio>-->
-  </view>
+        <list>
+          <cell v-for="item in commentData">
+            <card :item="item"></card>
+          </cell>
+        </list>
+      </div>
+    </scroller>
+    <div class="comment-area">
+      <textarea class="comment-area-edit" style="background-color: gray;"></textarea>
+    </div>
+  </div>
 </template>
 
 <script>
-import { formatTime, debugPlayList } from '@/utils/index'
-import card from '@/components/card'
+import { formatTime, debugPlayList } from '@/utils/index';
+
+import requestUtils from '@/utils/request';
+
+import card from '@/components/comment-item-view'
 
 import listIcon from './img/list.png';
 import pauseIcon from './img/pause.png';
@@ -88,16 +109,18 @@ import playIcon from './img/play.png';
 import nextIcon from './img/next.png';
 import preIcon from './img/prev.png';
 import iconIcon from './img/icon.png';
+import iconComment from './img/icon_comment.png';
 
 
 var app = getApp();
 let rotate = 0;
 export default {
   components: {
+    card
   },
   data () {
     return {
-      audioList: debugPlayList().songs,
+      audioList: [], //主題列表
       audioIndex: 0,
       windowHeight: 0,
       pauseStatus: true,
@@ -111,15 +134,21 @@ export default {
         playIcon,
         nextIcon,
         preIcon,
-        iconIcon
-      }
+        iconIcon,
+        iconComment
+      },
+      curPlayList:[
+      ],
+      commentData: [
+
+      ]
     }
   },
   created () {
+    this.windowHeight = wx.getSystemInfoSync().windowHeight;
   },
   mounted() {
-    // 使用 wx.createAudioContext 获取 audio 上下文 context
-     this.windowHeight = wx.getSystemInfoSync().windowHeight;
+     this.fetchThemeList();
   },
   onHide() {
     this.listShow = false;
@@ -127,12 +156,20 @@ export default {
   onTabItemTap() {
     this.listShow = false;
   },
+  onShow(){
+    if (app.playChannel) {
+      this.fetchPlayList(app.playChannel);
+      delete app.playChannel;
+    } else if ((!this.curPlayList || this.curPlayList.length < 1) && (app.homepageData && app.homepageData.firstPartData && app.homepageData.firstPartData.length > 0)){
+      this.fetchPlayList(app.homepageData.firstPartData[0].id, true);
+    }
+  },
   methods: {
     bindSliderchange: function(e) {
       // clearInterval(this.data.timer)
-      let value = e.detail.value
+      let value = e.mp.detail.value
       let that = this
-      console.log(e.detail.value)
+      console.log(e.mp.detail.value)
       wx.getBackgroundAudioPlayerState({
         success: function (res) {
           console.log(res)
@@ -146,9 +183,66 @@ export default {
         }
       })
     },
+    onClickComment() {
+        //展示评论框
+    },
+    fetchPlayList: function (themeId, noNeedPlay = false) {
+      let that = this;
+      //開始獲取音頻
+      wx.request({
+        url: 'https://www.wuyouzhidi.com/getAudioInfoList',
+        data: {
+          themeId: themeId
+        },
+        header: {
+          'content-type': 'application/json'
+        },
+        method:'POST',
+        success: function(result){
+          if (result.data.success) {
+            that.curPlayList = result.data.data;
+            if (that.curPlayList && that.curPlayList.length > 0 && !noNeedPlay) {
+              that.pauseStatus = true;
+              wx.stopBackgroundAudio();
+              that.bindTapPlay();
+            }
+          };
+          //获取评论数据
+          requestUtils.commentList( 0,500,themeId, function (res) {
+              if (res.data && res.data.success) {
+                that.commentData = res.data.data;
+              }
+              debugger;
+          } );
+        },
+        fail: function (res) {
+        }
+      })
+    },
+    fetchThemeList: function () {
+      let that = this;
+      wx.request({
+        url: 'https://www.wuyouzhidi.com/getAllThemeListPageNotTest',
+        data: {
+          pageNumber: 0,
+          pageSize: 500
+        },
+        header: {
+          'content-type': 'application/json'
+        },
+        method:'POST',
+        success: function(result){
+          if (result.data.success) {
+            that.audioList = result.data.data.content;
+          }
+        },
+        fail: function (res) {
+        }
+      })
+    },
     bindTapPrev: function() {
       console.log('bindTapNext')
-      let length = this.audioList.length
+      let length = this.curPlayList.length
       let audioIndexPrev = this.audioIndex
       let audioIndexNow = audioIndexPrev
       if (audioIndexPrev === 0) {
@@ -166,12 +260,11 @@ export default {
         if (that.pauseStatus === true) {
           that.play()
         }
-      }, 1000)
-      wx.setStorageSync('audioIndex', audioIndexNow)
+      }, 300);
     },
     bindTapNext: function() {
       console.log('bindTapNext')
-      let length = this.audioList.length
+      let length = this.curPlayList.length
       let audioIndexPrev = this.audioIndex
       let audioIndexNow = audioIndexPrev
       if (audioIndexPrev === length - 1) {
@@ -209,31 +302,35 @@ export default {
       console.log(e);
       this.listShow = true;
     },
-    bindTapChoose: function(e) {
-      console.log('bindTapChoose')
-      console.log(e);
-
+    bindTapChoose: function(item, e) {
+      if (!item) return;
       this.listShow = false;
-      this.audioIndex = parseInt(e.currentTarget.id, 10);
-      let that = this
-      setTimeout(() => {
-        if (that.pauseStatus === false) {
-          that.play()
-        }
-      }, 200)
-      wx.setStorageSync('audioIndex', parseInt(e.currentTarget.id, 10))
+      let that = this;
+      this.fetchPlayList(item.id);
     },
     play() {
-      let {audioList, audioIndex} = this;
+      let {curPlayList, audioIndex} = this;
+
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+
+      let that = this;
+      wx.onBackgroundAudioPause(function () {
+        that.pauseStatus = true;
+      });
+
+      wx.onBackgroundAudioPlay(function () {
+        that.pauseStatus = false;
+      });
       wx.playBackgroundAudio({
-        dataUrl: audioList[audioIndex].url,
-        title: audioList[audioIndex].title,
-        coverImgUrl: audioList[audioIndex].pic
-      })
-      let that = this
+        dataUrl: curPlayList[audioIndex].audioUrl,
+        title: curPlayList[audioIndex].title,
+        coverImgUrl: curPlayList[audioIndex].imageUrl
+      });
       let timer = setInterval(function() {
         that.setDuration(that)
-      }, 1000)
+      }, 1000);
       this.timer = timer;
     },
     setDuration(that) {
@@ -272,7 +369,7 @@ export default {
     onShareAppMessage: function () {
       let that = this
       return {
-        title: 'light轻音乐：' + that.audioList[that.audioIndex].title,
+        title: 'light轻音乐：' + that.curPlayList[that.audioIndex].title,
         success: function(res) {
           wx.showToast({
             title: '分享成功',
@@ -317,6 +414,23 @@ export default {
     width: 100%;
     background-color: rgba(54, 43, 41, 0.1);
   }
+
+  .icon-comment-container {
+    position: absolute;
+    right: 40rpx;
+    display: flex;
+    flex-direction: column;
+  }
+  .icon-comment{
+    width: 64rpx;
+    height: 64rpx;
+  }
+  .comment-text {
+    color: white;
+    margin-top: 3rpx;
+    font-size: 22rpx;
+  }
+
   /*3*/
   .rotate-disk-container{
     position: absolute;
@@ -475,6 +589,7 @@ export default {
   }
   .list-one-right{
     margin: 0 0 0 30rpx;
+    flex: 1;
   }
   .list-one-choose{
     background-color: rgba(54, 43, 41, 0.6);
@@ -489,4 +604,18 @@ export default {
     line-height: 60rpx;
     margin-right: 20rpx;
   }
+
+  .comment-area {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 120rpx;
+  }
+
+  .comment-area-edit {
+    width: 100%;
+    height: 120rpx;
+  }
+
 </style>

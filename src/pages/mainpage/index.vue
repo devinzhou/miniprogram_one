@@ -16,8 +16,8 @@
         <text class="normal-items-title-text">{{secondPartData.title}}</text>
       </div>
       <div style="overflow: hidden;padding-left:10rpx;padding-right: 20rpx;" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
-        <div class="weui-grid_item" v-for="item in secondPartData.items">
-          <image class="weui-grid__icon"  :src="item.imageUrl" resize="stretch"></image>
+        <div class="weui-grid_item" v-for="(item, index) in secondPartData.items" @click="onChannelClick(item, $event)">
+          <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
           <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
         </div>
       </div>
@@ -26,26 +26,36 @@
 
     <!-- 第三部分 -->
     <cell>
-      <div class="normal-items-title" v-if="thirdPartData && thirdPartData.items && thirdPartData.items.length > 0">
-        <text class="normal-items-title-text">{{thirdPartData.title}}</text>
-      </div>
-      <div style="overflow: hidden;padding-left:20rpx;padding-right: 20rpx;" v-if="thirdPartData && thirdPartData.items && thirdPartData.items.length > 0">
-        <div class="feed-item" v-for="item in thirdPartData.items">
-          <image style="height: 120rpx;width: 120rpx; display: inline-block;" :src="item.headerUrl"></image>
-          <div class="feed-item-content">
-            <text class="feed-item-title" style="">{{item.title}}</text>
-            <text class="feed-item-desc">{{item.desc}}</text>
-          </div>
+      <div style="clear: both; height: 280rpx;">
+        <div class="normal-items-title" v-if="thirdPartData && thirdPartData.items && thirdPartData.items.length > 0">
+          <text class="normal-items-title-text">{{thirdPartData.title}}</text>
+        </div>
+        <div class="weui-grid_item" v-for="(item, index) in thirdPartData.items" @click="onChannelClick(item, $event)">
+          <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
+          <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
         </div>
       </div>
+    </cell>
+    <!-- 精选评论 -->
+    <cell v-if="comments && comments.items && comments.items.length > 0">
       <div style="width: 100%; height: 20rpx;background-color: #f6f6f6; margin-top: 10rpx;"></div>
+      <div>
+        <div class="normal-items-title">
+          <text class="normal-items-title-text">{{comments.title}}</text>
+        </div>
+        <div v-for="(item, index) in comments.items">
+          <card :item="item"></card>
+        </div>
+      </div>
     </cell>
   </list>
 </template>
 
 <script>
 import { formatTime } from '@/utils/index'
-import card from '@/components/card'
+import card from '@/components/comment-item-view';
+
+var app = getApp();
 
 export default {
   components: {
@@ -74,60 +84,54 @@ export default {
       ],
       secondPartData: {
         title: '立竿见影的帮助',
-        items: [
-          {
-            imageUrl:'https://s1.ax1x.com/2018/06/18/CxYt76.png',
-            title:'头疼',
-            id:'1'
-          },
-          {
-            imageUrl:'https://s1.ax1x.com/2018/06/18/CxYJn1.png',
-            title:'关节疼',
-            id:'2'
-          },
-          {
-            imageUrl:'https://s1.ax1x.com/2018/06/18/CxYY0x.png',
-            title:'拖延症',
-            id:'3'
-          },
-        ]
+        items: []
       },
       thirdPartData: {
         title: '即将上线 & 用户体验',
-        items: [
-          {
-            id: 'item id',
-            desc: 'Around the world，music therapy(疗法) is being used to treat different medical conditions and illnesses. Some of the ways people use music therapy are to reduce pain，such as in childbirth or during cancer treatments，or to stimulate brain activity after an injury or money loss. ',
-            title: '最新的可以体验功能',
-            createdTime: '2018-3-28',
-            praiseCount: 111,
-            headerUrl: 'https://s1.ax1x.com/2018/06/18/CxYt76.png',
-            user: {
-              nickName: '暖暖',
-              nickIcon: '',
-            }
-          },
-          {
-            id: 'item id',
-            desc: 'Around the world，music therapy(疗法) is being used to treat different medical conditions and illnesses. Some of the ways people use music therapy are to reduce pain，such as in childbirth or during cancer treatments，or to stimulate brain activity after an injury or money loss. ',
-            title: '用户体验',
-            createdTime: '2018-3-28',
-            praiseCount: 111,
-            headerUrl: 'https://s1.ax1x.com/2018/06/18/CxYt76.png',
-            user: {
-              nickName: '暖暖',
-              nickIcon: '',
-            }
-          }
-        ]
+        items: []
       },
       comments: {
-
-      }
+        title: '精选评论',
+        items:[]
+      },
     }
   },
-
   created () {
+    app.onReceiveData = this.onReceiveData;
+    this.onReceiveData();
+  },
+  mounted(){
+  },
+  onHide() {
+  },
+  onTabItemTap() {
+  },
+  methods: {
+    onReceiveData(){
+      if (!app || !app.homepageData) {
+        return;
+      }
+      this.secondPartData.items = app.homepageData.firstPartData;
+      this.thirdPartData.items = app.homepageData.secondPartData;
+      this.comments.items = app.homepageData.testThemeCommentList;
+    },
+    onChannelClick(item, event) {
+      if (!item) return;
+      console.log("on channel click : " + item);
+
+      if (item.test && (!app.userInfo || !app.userInfo.testUser)) {
+        wx.showModal({
+          title:"当前功能仅开放给实验用户!",
+          showCancel:false
+        });
+        return;
+      }
+
+      app.playChannel = item.id;
+      wx.switchTab({
+        url:'/pages/playerpage2/main'
+      })
+    }
   }
 }
 </script>

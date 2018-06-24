@@ -1,15 +1,15 @@
 <template>
   <div class="container">
-      <image class="header" :src="item.user.head ? item.user.head : images.defaultIcon" resize="stretch"></image>
-      <div style="flex: 1; display: flex; flex-direction: column;margin-left: 5rpx;">
+      <image class="header" :src="item.userImageUrl ? item.userImageUrl : images.defaultIcon" resize="stretch"></image>
+      <div style="flex: 1; display: flex; flex-direction: column;margin-left: 15rpx;">
         <div style="display: flex; justify-content: space-between;">
-          <text class="title">{{item.user.nickName}} </text>
+          <text class="title">{{item.userName}} </text>
           <div style="display: flex;flex-direction: row; height: 40rpx;justify-items: center;margin-top: 8rpx;">
             <image class="priase-icon" :src="item.isPraise ? images.praisedIcon : images.praisedUnchecked"></image>
-            <text class="priase-text" :style="{ color: priaseColor }">{{item.praiseNum}}</text>
+            <text class="priase-text" :style="{ color: priaseColor }">{{item.thumbNum}}</text>
           </div>
         </div>
-        <text class="content">{{ item.content }}</text>
+        <text class="content">{{ item.commentInfo }}</text>
         <text class="time-stamp">{{commentTime}}</text>
       </div>
   </div>
@@ -25,14 +25,18 @@ export default {
     item: {
       type: Object,
       default: {
-        isPraise: true,
-        praiseNum: 11,
-        content: '2放得开发了宫颈癌的快感教室里的房价肯定2放得开发了宫颈癌的快感教室里的房价肯定发生的开发商将对方的时间222放得开发了宫颈癌的快感教室里的房价肯定发生的开发商将对方的时间22发生的开发商将对方的时间22',
-        timestamp: new Date().getTime() * 1000,
-        user: {
-          head: defaultIcon,
-          nickName: '2放得开发了宫颈癌的快感教室里的房价肯定发生的开发商将对方的时间222放得开发了宫颈癌的快感教室里的房价肯定发生的开发商将对方的时间22'
-        }
+        "userImageUrl":"",
+        "themeId":0,
+        "updateTime": 0,
+        "type":1,
+        "userName":"",
+        "userId":0,
+        "insertTime":0,
+        "commentInfo":"",
+        "deleted":false,
+        "thumbNum":0,
+        "id":7642,
+        "selected":true
       }
     }
   },
@@ -45,7 +49,7 @@ export default {
       },
       isPraise: this.item.isPraise,
       priaseColor: '#333333',
-      commentTime: this.item &&  this.timeToDate(this.item.timestamp)
+      commentTime: this.item &&  this.timeToDate(this.item.updateTime)
     }
   },
   watch: {
@@ -54,7 +58,7 @@ export default {
         return;
       }
       this.isPraise = newValue.isPraise;
-      this.commentTime = timeToDate(newValue.timestamp);
+      this.commentTime = this.timeToDate(newValue.updateTime);
     }
   },
   methods: {
@@ -113,6 +117,7 @@ export default {
   .header {
     width: 68rpx;
     height: 68rpx;
+    margin-top: 30rpx;
     border-radius: 50%;
   }
   .title {
