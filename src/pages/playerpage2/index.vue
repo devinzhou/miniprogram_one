@@ -90,12 +90,11 @@
         </list>
       </div>
     </scroller>
-    <div class="comment-area">
-      <textarea class="comment-area-edit" style="background-color: gray;"></textarea>
+    <div ref="ccommentContainerRef" v-if="showCommentArea" class="comment-area">
+      <input ref="ccommentRef" placeholder="请写下你的评论哟~" :focus="true"  class="comment-area-edit" confirm-type="send" @confirm="bindConfirm"/>
     </div>
   </div>
 </template>
-
 <script>
 import { formatTime, debugPlayList } from '@/utils/index';
 
@@ -140,8 +139,9 @@ export default {
       curPlayList:[
       ],
       commentData: [
-
-      ]
+      ],
+      showCommentArea: false,
+      themeId: 0
     }
   },
   created () {
@@ -159,8 +159,10 @@ export default {
   onShow(){
     if (app.playChannel) {
       this.fetchPlayList(app.playChannel);
+      this.themeId = app.playChannel;
       delete app.playChannel;
     } else if ((!this.curPlayList || this.curPlayList.length < 1) && (app.homepageData && app.homepageData.firstPartData && app.homepageData.firstPartData.length > 0)){
+      this.themeId = app.homepageData.firstPartData[0].id;
       this.fetchPlayList(app.homepageData.firstPartData[0].id, true);
     }
   },
@@ -185,6 +187,28 @@ export default {
     },
     onClickComment() {
         //展示评论框
+      this.showCommentArea = true;
+    },
+    bindConfirm(event) {
+      let that = this;
+      debugger;
+      //发送网络请求
+      requestUtils.commentTheme({
+        "commentInfo": event.mp.detail.value,
+        "themeId": that.themeId,
+        "type":1,
+        "userId": app.userInfo.id
+      }, function (res) {
+        if (res.data && res.data.success) {
+          wx.showToast({
+            title:'发布评论成功',
+            duration: 2500
+          });
+          that.showCommentArea = false;
+        } else {
+          that.$refs.ccommentRef.focus = true;
+        }
+      });
     },
     fetchPlayList: function (themeId, noNeedPlay = false) {
       let that = this;
@@ -419,6 +443,7 @@ export default {
     position: absolute;
     right: 40rpx;
     display: flex;
+    align-items: center;
     flex-direction: column;
   }
   .icon-comment{
@@ -611,11 +636,14 @@ export default {
     right: 0;
     bottom: 0;
     height: 120rpx;
+    background-color: white;
   }
 
   .comment-area-edit {
-    width: 100%;
+    width: 90%;
     height: 120rpx;
+    padding-left: 5%;
+    padding-right: 4%;
   }
 
 </style>

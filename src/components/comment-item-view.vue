@@ -4,9 +4,9 @@
       <div style="flex: 1; display: flex; flex-direction: column;margin-left: 15rpx;">
         <div style="display: flex; justify-content: space-between;">
           <text class="title">{{item.userName}} </text>
-          <div style="display: flex;flex-direction: row; height: 40rpx;justify-items: center;margin-top: 8rpx;">
-            <image class="priase-icon" :src="item.isPraise ? images.praisedIcon : images.praisedUnchecked"></image>
-            <text class="priase-text" :style="{ color: priaseColor }">{{item.thumbNum}}</text>
+          <div style="display: flex;flex-direction: row; height: 40rpx;justify-items: center;margin-top: 8rpx;" @click="clickThumb">
+            <image class="priase-icon" :src="isPraise ? images.praisedIcon : images.praisedUnchecked"></image>
+            <text class="priase-text" :style="{ color: priaseColor }">{{praiseNum}}</text>
           </div>
         </div>
         <text class="content">{{ item.commentInfo }}</text>
@@ -19,6 +19,8 @@
   import defaultIcon from './img/default_head.png';
   import praisedIcon from './img/priased.png';
   import praisedUnchecked from './img/priase_unchecked.png';
+
+  import request from '../utils/request';
 
 export default {
   props: {
@@ -36,7 +38,8 @@ export default {
         "deleted":false,
         "thumbNum":0,
         "id":7642,
-        "selected":true
+        "selected":true,
+        "thumbed": false
       }
     }
   },
@@ -47,9 +50,10 @@ export default {
         praisedIcon,
         praisedUnchecked
       },
-      isPraise: this.item.isPraise,
+      isPraise: this.item.thumbed,
       priaseColor: '#333333',
-      commentTime: this.item &&  this.timeToDate(this.item.updateTime)
+      commentTime: this.item &&  this.timeToDate(this.item.updateTime),
+      praiseNum: this.item.thumbNum
     }
   },
   watch: {
@@ -102,6 +106,30 @@ export default {
         return createMonth + '-' + createDay
       }
       return createYear + '-' + createMonth + '-' + createDay
+    },
+    clickThumb() {
+      let that = this;
+      request.dealCommentPraise(getApp().userInfo.id, this.item.id, function (res) {
+        if (res.data && res.data.success) {
+
+          if (that.isPraise) {
+            that.praiseNum --;
+          } else {
+            that.praiseNum ++;
+          }
+
+          if (that.praiseNum < 0) {
+            that.praiseNum = 0;
+          }
+
+          that.isPraise = !that.isPraise;
+        } else {
+          wx.showToast({
+            title: '点赞失败',
+            duration: 2000
+          });
+        }
+      });
     }
   }
 }

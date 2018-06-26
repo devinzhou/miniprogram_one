@@ -28,7 +28,7 @@ export default {
 
   methods: {
     scrolltolower: function (event) {
-      if (!hasMore) return;
+      if (!this.hasMore) return;
       this.loadData(this.currentPage);
     },
     loadData(index) {
