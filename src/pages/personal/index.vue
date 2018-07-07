@@ -67,7 +67,7 @@ export default {
         },
         {
           icon: iconComment,
-          title: '我要留言',
+          title: '我的留言',
           id:2
         },
         {
@@ -86,6 +86,7 @@ export default {
   created(){
     this.getUserInfo ();
   },
+
   mounted() {
   },
   components: {

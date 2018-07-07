@@ -141,7 +141,8 @@ export default {
       commentData: [
       ],
       showCommentArea: false,
-      themeId: 0
+      themeId: 0,
+      sliderValue: 0
     }
   },
   created () {
@@ -171,13 +172,13 @@ export default {
       // clearInterval(this.data.timer)
       let value = e.mp.detail.value
       let that = this
+      that.sliderValue = value;
       console.log(e.mp.detail.value)
       wx.getBackgroundAudioPlayerState({
         success: function (res) {
-          console.log(res)
+          console.log(res);
           let {status, duration} = res
           if (status === 1 || status === 0) {
-            that.slice = value;
             wx.seekBackgroundAudio({
               position: value * duration / 100,
             })
@@ -191,7 +192,6 @@ export default {
     },
     bindConfirm(event) {
       let that = this;
-      debugger;
       //发送网络请求
       requestUtils.commentTheme({
         "commentInfo": event.mp.detail.value,
@@ -236,7 +236,6 @@ export default {
               if (res.data && res.data.success) {
                 that.commentData = res.data.data;
               }
-              debugger;
           } );
         },
         fail: function (res) {
@@ -338,6 +337,10 @@ export default {
       if (this.timer) {
         clearInterval(this.timer);
       }
+
+      app.curPlayList = curPlayList;
+      app.curAudioIndex = audioIndex;
+      app.onOtherPagePlay && app.onOtherPagePlay();
 
       let that = this;
       wx.onBackgroundAudioPause(function () {

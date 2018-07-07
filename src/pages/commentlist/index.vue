@@ -25,7 +25,11 @@ export default {
   components: {
     card
   },
-
+  onPullDownRefresh: function(){
+    setTimeout(() => {
+      wx.stopPullDownRefresh();
+    }, 1500);
+  },
   methods: {
     scrolltolower: function (event) {
       if (!this.hasMore) return;
@@ -36,22 +40,28 @@ export default {
       if (this.currentPage == index){
         requestUtils.userCommentList(this.currentPage, this.pageSize, app.userInfo.id, function (res) {
           if (res.data.success) {
+
+            if (that.currentPage === 0) {
+              that.allData = [];
+            }
+
             that.allData.push(...res.data.data);
 
             if (!res.data.data || res.data.data.length < 1) {
               that.hasMore = false;
             }
+
+            that.currentPage ++;
           }
         });
-        this.currentPage ++;
       }
     }
   },
-
   created () {
     this.windowHeight = wx.getSystemInfoSync().windowHeight;
   },
   mounted(){
+    this.currentPage = 0;
     this.loadData(this.currentPage);
   }
 }

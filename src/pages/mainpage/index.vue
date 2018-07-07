@@ -1,59 +1,81 @@
 <template>
-  <list>
-    <header>
-      <swiper
-        :indicator-dots="indicatorDots" :autoplay="autoplay" :circular="circular" :vertical="vertical"
-        :interval="interval" :duration="duration">
-        <swiper-item v-for="item in backgroundList">
-          <image style="width: 750rpx; height: 350rpx;" :src="item.url" resize="stretch"></image>
-        </swiper-item>
-      </swiper>
-      <div style="width: 100%; height: 20rpx;background-color: #f6f6f6;"></div>
-    </header>
-    <!-- 第二部分 -->
-    <cell>
-      <div class="normal-items-title" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
-        <text class="normal-items-title-text">{{secondPartData.title}}</text>
-      </div>
-      <div style="overflow: hidden;padding-left:10rpx;padding-right: 20rpx;" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
-        <div class="weui-grid_item" v-for="(item, index) in secondPartData.items" @click="onChannelClick(item, $event)">
-          <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
-          <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
+  <div>
+    <list>
+      <header>
+        <swiper
+          :indicator-dots="indicatorDots" :autoplay="autoplay" :circular="circular" :vertical="vertical"
+          :interval="interval" :duration="duration">
+          <swiper-item v-for="item in backgroundList">
+            <image style="width: 750rpx; height: 350rpx;" :src="item.url" resize="stretch"></image>
+          </swiper-item>
+        </swiper>
+        <div style="width: 100%; height: 20rpx;background-color: #f6f6f6;"></div>
+      </header>
+      <!-- 第二部分 -->
+      <cell>
+        <div class="normal-items-title" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
+          <text class="normal-items-title-text">{{secondPartData.title}}</text>
         </div>
-      </div>
-      <div style="width: 100%; height: 20rpx;background-color: #f6f6f6; margin-top: 10rpx;"></div>
-    </cell>
+        <div style="overflow: hidden;padding-left:10rpx;padding-right: 20rpx;" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
+          <div class="weui-grid_item" v-for="(item, index) in secondPartData.items" @click="onChannelClick(item, $event)">
+            <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
+            <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
+          </div>
+        </div>
+        <div style="width: 100%; height: 20rpx;background-color: #f6f6f6; margin-top: 10rpx;"></div>
+      </cell>
 
-    <!-- 第三部分 -->
-    <cell>
-      <div style="clear: both; height: 280rpx;">
-        <div class="normal-items-title" v-if="thirdPartData && thirdPartData.items && thirdPartData.items.length > 0">
-          <text class="normal-items-title-text">{{thirdPartData.title}}</text>
+      <!-- 第三部分 -->
+      <cell>
+        <div style="clear: both; height: 280rpx;">
+          <div class="normal-items-title" v-if="thirdPartData && thirdPartData.items && thirdPartData.items.length > 0">
+            <text class="normal-items-title-text">{{thirdPartData.title}}</text>
+          </div>
+          <div class="weui-grid_item" v-for="(item, index) in thirdPartData.items" @click="onChannelClick(item, $event)">
+            <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
+            <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
+          </div>
         </div>
-        <div class="weui-grid_item" v-for="(item, index) in thirdPartData.items" @click="onChannelClick(item, $event)">
-          <image class="weui-grid__icon"  :src="item.imageUrl" resize="contain"></image>
-          <p class="weui-grid__label" style="font-size: 24rpx;text-align: left;">{{item.title}}</p>
+      </cell>
+      <!-- 精选评论 -->
+      <cell v-if="comments && comments.items && comments.items.length > 0">
+        <div style="width: 100%; height: 20rpx;background-color: #f6f6f6; margin-top: 10rpx;"></div>
+        <div>
+          <div class="normal-items-title">
+            <text class="normal-items-title-text">{{comments.title}}</text>
+          </div>
+          <div v-for="(item, index) in comments.items">
+            <card :item="item"></card>
+          </div>
         </div>
-      </div>
-    </cell>
-    <!-- 精选评论 -->
-    <cell v-if="comments && comments.items && comments.items.length > 0">
-      <div style="width: 100%; height: 20rpx;background-color: #f6f6f6; margin-top: 10rpx;"></div>
-      <div>
-        <div class="normal-items-title">
-          <text class="normal-items-title-text">{{comments.title}}</text>
-        </div>
-        <div v-for="(item, index) in comments.items">
-          <card :item="item"></card>
-        </div>
-      </div>
-    </cell>
-  </list>
+      </cell>
+    </list>
+
+    <div class="player-area" v-if="curPlayList.length > 0">
+      <image class="player-area-img" :src="curPlayList[audioIndex].imageUrl"></image>
+      <text class="play-area-title">{{curPlayList[audioIndex].title}}</text>
+      <image
+        :src="pauseStatus === false ? images.pauseIcon : images.playIcon"
+        class="icon-play" @click="bindTapPlay"></image>
+      <text class="play-area-time">{{playState.currentPosition}}/{{playState.duration}}</text>
+    </div>
+
+  </div>
 </template>
 
 <script>
 import { formatTime } from '@/utils/index'
 import card from '@/components/comment-item-view';
+import listIcon from '../playerpage2/img/list.png';
+import pauseIcon from './img/pause.png';
+import playIcon from './img/play.png';
+import loopEnableIcon from './img/loop.png'
+import loopDisableIcon from './img/loop_disable.png'
+import nextIcon from '../playerpage2/img/next.png';
+import preIcon from '../playerpage2/img/prev.png';
+import iconIcon from '../playerpage2/img/icon.png';
+import iconComment from '../playerpage2/img/icon_comment.png';
+
 
 var app = getApp();
 
@@ -71,6 +93,15 @@ export default {
       duration: 500,
       previousMargin: 0,
       nextMargin: 0,
+      images: {
+        listIcon,
+        pauseIcon,
+        playIcon,
+        nextIcon,
+        preIcon,
+        iconIcon,
+        iconComment
+      },
       backgroundList:[
         {
           url:'https://s1.ax1x.com/2018/06/18/CxYt76.png'
@@ -94,13 +125,40 @@ export default {
         title: '精选评论',
         items:[]
       },
+      audioIndex: 0,
+      curPlayList: [],
+      pauseStatus: true,
+      playState: {
+        currentPosition: 0,
+        duration: 0
+      }
     }
   },
   created () {
     app.onReceiveData = this.onReceiveData;
     this.onReceiveData();
+    let self = this;
+    app.onOtherPagePlay = function () {
+      self.curPlayList = app.curPlayList;
+      self.audioIndex = app.curAudioIndex;
+
+      let that = this;
+      wx.onBackgroundAudioPause(function () {
+        that.pauseStatus = true;
+      });
+
+      wx.onBackgroundAudioPlay(function () {
+        that.pauseStatus = false;
+      });
+
+      let timer = setInterval(function() {
+        self.setDuration();
+      }, 1000);
+      this.timer = timer;
+    };
   },
   mounted(){
+
   },
   onHide() {
   },
@@ -111,6 +169,11 @@ export default {
       if (!app || !app.homepageData) {
         return;
       }
+
+      if (app.homepageData.backgroundList) {
+        this.backgroundList = app.backgroundList;
+      }
+
       this.secondPartData.items = app.homepageData.firstPartData;
       this.thirdPartData.items = app.homepageData.secondPartData;
       this.comments.items = app.homepageData.testThemeCommentList;
@@ -126,18 +189,141 @@ export default {
         });
         return;
       }
-
       app.playChannel = item.id;
       wx.switchTab({
         url:'/pages/playerpage2/main'
+      });
+    },
+    bindTapPlay: function() {
+      console.log('bindTapPlay')
+      console.log(this.pauseStatus)
+      if (this.pauseStatus === true) {
+        this.play()
+        this.pauseStatus = false;
+      } else {
+        wx.pauseBackgroundAudio()
+        this.pauseStatus = true;
+      }
+    },
+    play() {
+      let {curPlayList, audioIndex} = this;
+
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+
+      let that = this;
+      wx.onBackgroundAudioPause(function () {
+        that.pauseStatus = true;
+      });
+
+      wx.onBackgroundAudioPlay(function () {
+        that.pauseStatus = false;
+      });
+      wx.playBackgroundAudio({
+        dataUrl: curPlayList[audioIndex].audioUrl,
+        title: curPlayList[audioIndex].title,
+        coverImgUrl: curPlayList[audioIndex].imageUrl
+      });
+      let timer = setInterval(function() {
+        that.setDuration();
+      }, 1000);
+      this.timer = timer;
+    },
+    setDuration() {
+      let self = this;
+      wx.getBackgroundAudioPlayerState({
+        success: function (res) {
+          console.log(res)
+          let {status, duration, currentPosition} = res;
+          self.playState = res;
+          debugger;
+          if (status === 1 || status === 0) {
+            if (status === 1){
+              self.pauseStatus = false;
+            } else if (status === 0) {
+              self.pauseStatus = true;
+            }
+            if (self.stotime(currentPosition)) {
+              self.playState.currentPosition = self.stotime(currentPosition);
+            }
+            if (self.stotime(duration)) {
+              self.playState.duration = self.stotime(duration);
+            }
+          }
+        }
       })
-    }
+    },
+    stotime: function(s) {
+      let t = '';
+      if(s > -1) {
+        // let hour = Math.floor(s / 3600);
+        let min = Math.floor(s / 60) % 60;
+        let sec = s % 60;
+        // if (hour < 10) {
+        //   t = '0' + hour + ":";
+        // } else {
+        //   t = hour + ":";
+        // }
+
+        if (min < 10) { t += "0"; }
+        t += min + ":";
+        if (sec < 10) { t += "0"; }
+        t += sec;
+      }
+      return t;
+    },
   }
 }
 </script>
 
 <style>
   @import "../../../static/css/base_css.wxss";
+
+  .player-area {
+    position: fixed;
+    bottom: 20rpx;
+    left: 20rpx;
+    right: 20rpx;
+    width: 670rpx;
+    display: flex;
+    flex-direction: row;
+    background-color: #121212;
+    padding: 20rpx;
+    border-radius: 10rpx;
+    opacity: 0.7;
+  }
+
+  .player-area-img {
+    width: 74rpx;
+    height: 74rpx;
+  }
+  .play-area-title {
+    font-size: 30rpx;
+    color: white;
+    max-width: 400rpx;
+    text-overflow: ellipsis;
+    max-lines: 1;
+    align-self: center;
+    margin-left: 15rpx;
+  }
+
+  .icon-play{
+    /*background-image: url('../../assets/img/icon.png');
+    background-repeat: no-repeat;
+    background-position: -136px -153px;*/
+    position: absolute;
+    width: 74rpx;
+    height: 74rpx;
+  }
+
+  .play-area-time {
+    font-size: 28rpx;
+    color: deepskyblue;
+    position: absolute;
+    right: 20rpx;
+    bottom: 10rpx;
+  }
 
   .normal-items-title{
     margin-left: 20rpx;
