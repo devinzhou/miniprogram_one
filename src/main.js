@@ -29,7 +29,7 @@ export default {
       ],
       color: "#666666",
       selectedColor: "#009900",
-      backgroundColor: "#FDFDFD"
+      backgroundColor: "#FDFDFD",
     },
     window: {
       backgroundTextStyle: 'light',

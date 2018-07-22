@@ -11,7 +11,7 @@
           <view class="bg-gray">
           </view>
           <!--第三层：player层-->
-          <view :style="{ display: listShow === true ? 'none' : '' }">
+          <view :style="{ display: (listShow === true || listChannelSong == true) ? 'none' : '' }">
             <!--旋转图-->
             <view class="rotate-disk-container">
               <view :class="['rotate-disk', pauseStatus === false ? 'rotate-360' : 'rotate-360-paused']">
@@ -27,7 +27,6 @@
               </view>
               <div class="icon-list">
                 <image :src="images.listIcon" class="icon-list-img" @click="bindTapList"></image>
-                <text v-if="false" class="icon-list-text">切换主题</text>
               </div>
             </view>
             <view class="slider-container">
@@ -55,6 +54,9 @@
                 <image :src="images.iconComment" class="icon-comment"></image>
                 <text class="comment-text">评论</text>
               </div>
+              <div class="icon-loop-container" @click="onLoopPlay">
+                <image :src="isPlayLoop ? images.loopEnable: images.loopDisable" class="icon-comment"></image>
+              </div>
             </view>
           </view>
           <!--第五层：列表页-->
@@ -70,6 +72,31 @@
                 :class="['list-one']"
                 hover-class="list-one-choose"
                 @click="bindTapChoose(item, $event)"
+              >
+                <view class="name">
+                  <text class="list-index">{{index}}</text>
+                </view>
+                <image class="list-one-poster" :src="item.imageUrl"></image>
+                <view class="list-one-right">
+                  <view class="name">{{item.title}}</view>
+                  <!--<view class="author">歌手：{{item.author}}</view>-->
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+
+          <!--第六层：channel 详情页-->
+          <scroll-view
+            class="list"
+            scroll-y
+            :style="{display: listChannelSong === true ? '' : 'none'}"
+          >
+            <view v-for="(item,index) in curPlayList">
+              <view
+                :id="index"
+                :class="['list-one']"
+                hover-class="list-one-choose"
+                @click="bindPlaySelectedChannel(index, $event)"
               >
                 <view class="name">
                   <text class="list-index">{{index}}</text>
@@ -109,6 +136,8 @@ import nextIcon from './img/next.png';
 import preIcon from './img/prev.png';
 import iconIcon from './img/icon.png';
 import iconComment from './img/icon_comment.png';
+import loopDisable from './img/icon_disable.png';
+import loopEnable from './img/icon_enable.png';
 
 
 var app = getApp();
@@ -123,7 +152,9 @@ export default {
       audioIndex: 0,
       windowHeight: 0,
       pauseStatus: true,
+      isPlayLoop: false,
       listShow: false,
+      listChannelSong: false,
       timer: '',
       currentPosition: 0,
       duration:0,
@@ -134,7 +165,9 @@ export default {
         nextIcon,
         preIcon,
         iconIcon,
-        iconComment
+        iconComment,
+        loopDisable,
+        loopEnable
       },
       curPlayList:[
       ],
@@ -145,6 +178,16 @@ export default {
       sliderValue: 0
     }
   },
+  onShareAppMessage(res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      title: '只需要一段音频就能减缓病痛，这里有一封无忧地的邀请函。',
+      path: '/pages/mainpage/main?id=123'
+    }
+  },
   created () {
     this.windowHeight = wx.getSystemInfoSync().windowHeight;
   },
@@ -153,11 +196,18 @@ export default {
   },
   onHide() {
     this.listShow = false;
+    this.listChannelSong = false;
   },
   onTabItemTap() {
     this.listShow = false;
   },
   onShow(){
+    if (app.showChannelList) {
+      app.showChannelList = false;
+      this.listChannelSong = false;
+      this.listShow = true;
+    }
+
     if (app.playChannel) {
       this.fetchPlayList(app.playChannel);
       this.themeId = app.playChannel;
@@ -190,8 +240,17 @@ export default {
         //展示评论框
       this.showCommentArea = true;
     },
+    onLoopPlay() {
+      this.isPlayLoop = !this.isPlayLoop;
+    },
     bindConfirm(event) {
       let that = this;
+
+      if (!event.mp.detail.value || event.mp.detail.value.length < 2) {
+        that.showCommentArea = false;
+        return
+      }
+
       //发送网络请求
       requestUtils.commentTheme({
         "commentInfo": event.mp.detail.value,
@@ -323,7 +382,12 @@ export default {
     bindTapList: function(e) {
       console.log('bindTapList')
       console.log(e);
-      this.listShow = true;
+      this.listChannelSong = true;
+    },
+    bindPlaySelectedChannel(position, e) {
+      this.audioIndex = position;
+      this.listChannelSong = false;
+      this.play();
     },
     bindTapChoose: function(item, e) {
       if (!item) return;
@@ -333,7 +397,6 @@ export default {
     },
     play() {
       let {curPlayList, audioIndex} = this;
-
       if (this.timer) {
         clearInterval(this.timer);
       }
@@ -350,6 +413,14 @@ export default {
       wx.onBackgroundAudioPlay(function () {
         that.pauseStatus = false;
       });
+
+      wx.onBackgroundAudioStop(function () {
+        that.pauseStatus = true;
+        if (that.isPlayLoop) {
+          that.play();
+        }
+      });
+
       wx.playBackgroundAudio({
         dataUrl: curPlayList[audioIndex].audioUrl,
         title: curPlayList[audioIndex].title,
@@ -380,6 +451,10 @@ export default {
         // let hour = Math.floor(s / 3600);
         let min = Math.floor(s / 60) % 60;
         let sec = s % 60;
+
+        min = Math.round(min);
+        sec = Math.round(sec);
+
         // if (hour < 10) {
         //   t = '0' + hour + ":";
         // } else {
@@ -392,26 +467,6 @@ export default {
         t += sec;
       }
       return t;
-    },
-    onShareAppMessage: function () {
-      let that = this
-      return {
-        title: 'light轻音乐：' + that.curPlayList[that.audioIndex].title,
-        success: function(res) {
-          wx.showToast({
-            title: '分享成功',
-            icon: 'success',
-            duration: 2000
-          })
-        },
-        fail: function(res) {
-          wx.showToast({
-            title: '分享失败',
-            icon: 'cancel',
-            duration: 2000
-          })
-        }
-      }
     }
   }
 }
@@ -449,6 +504,15 @@ export default {
     align-items: center;
     flex-direction: column;
   }
+
+  .icon-loop-container {
+    position: absolute;
+    left: 120rpx;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
   .icon-comment{
     width: 64rpx;
     height: 64rpx;

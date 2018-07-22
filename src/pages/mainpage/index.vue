@@ -15,6 +15,8 @@
       <cell>
         <div class="normal-items-title" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
           <text class="normal-items-title-text">{{secondPartData.title}}</text>
+
+          <text class="normal-item-title-more" @click="onJumpMenu">更多专辑</text>
         </div>
         <div style="overflow: hidden;padding-left:10rpx;padding-right: 20rpx;" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
           <div class="weui-grid_item" v-for="(item, index) in secondPartData.items" @click="onChannelClick(item, $event)">
@@ -178,6 +180,12 @@ export default {
       this.thirdPartData.items = app.homepageData.secondPartData;
       this.comments.items = app.homepageData.testThemeCommentList;
     },
+    onJumpMenu(event) {
+      app.showChannelList = true;
+      wx.switchTab({
+        url:'/pages/playerpage2/main'
+      });
+    },
     onChannelClick(item, event) {
       if (!item) return;
       console.log("on channel click : " + item);
@@ -237,7 +245,6 @@ export default {
           console.log(res)
           let {status, duration, currentPosition} = res;
           self.playState = res;
-          debugger;
           if (status === 1 || status === 0) {
             if (status === 1){
               self.pauseStatus = false;
@@ -265,12 +272,19 @@ export default {
         // } else {
         //   t = hour + ":";
         // }
+        min = Math.round(min);
+        sec = Math.round(sec);
 
         if (min < 10) { t += "0"; }
         t += min + ":";
         if (sec < 10) { t += "0"; }
         t += sec;
       }
+
+      if (t.length > 10) {
+        t = t.substring(0, 10);
+      }
+
       return t;
     },
   }
@@ -312,8 +326,8 @@ export default {
     /*background-image: url('../../assets/img/icon.png');
     background-repeat: no-repeat;
     background-position: -136px -153px;*/
-    position: absolute;
     width: 74rpx;
+    margin-left: 10rpx;
     height: 74rpx;
   }
 
@@ -328,6 +342,10 @@ export default {
   .normal-items-title{
     margin-left: 20rpx;
     margin-top: 20rpx;
+    height: 70rpx;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   .feed-item-content {
@@ -370,9 +388,18 @@ export default {
   .normal-items-title-text{
     height: 90rpx;
     padding-top: 10rpx;
-    width: 100%;
     text-align: center;
     font-size: 26rpx;
+    font-weight: bold;
+  }
+
+  .normal-item-title-more {
+    height: 90rpx;
+    padding-top: 10rpx;
+    text-align: center;
+    font-size: 26rpx;
+    color: #009900;
+    margin-right: 20rpx;
     font-weight: bold;
   }
 
@@ -381,6 +408,7 @@ export default {
     width: 229rpx;
     margin-left: 10rpx;
     margin-top: 10rpx;
+    padding-bottom: 10rpx;
   }
   .weui-grid__icon {
     display: block;

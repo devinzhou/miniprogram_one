@@ -20,11 +20,23 @@
 
     <!-- 个人主页每一项 -->
     <cell v-for="(item, index) in bottomBarData">
-      <div class="item-other" @click="bindViewTap(item, $event)">
+      <div v-if="item.id == 3" class="item-other">
+        <button open-type="share" plain="true" style="flex:1;display:flex;align-items: center;width: 100%;margin: 0;padding: 0;border: 1px solid transparent;outline: none;">
+
+        <image class="item-other-icon" :src="item.icon"></image>
+            <text class="item-other-text">
+              {{item.title}}
+            </text>
+        <image class="item-other-right-arrow" :src="rightArrow"></image>
+        </button>
+
+      </div>
+      <div v-else class="item-other" @click="bindViewTap(item, $event)">
         <image class="item-other-icon" :src="item.icon"></image>
         <text class="item-other-text">{{item.title}}</text>
         <image class="item-other-right-arrow" :src="rightArrow"></image>
       </div>
+
       <div style="background-color: #F6f6f6; width: 100%; height: 1rpx;"></div>
     </cell>
 
@@ -83,6 +95,16 @@ export default {
       ]
     }
   },
+  onShareAppMessage(res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      title: '只需要一段音频就能减缓病痛，这里有一封无忧地的邀请函。',
+      path: '/pages/mainpage/main?id=123'
+    }
+  },
   created(){
     this.getUserInfo ();
   },
@@ -108,8 +130,13 @@ export default {
         wx.navigateTo({
           "url": "/pages/commentlist/main"
         })
+      } else if (item && item.id == 3) {
+        debugger;
+        wx.showShareMenu({
+          withShareTicket: true,
+          from: "Button"
+        })
       }
-
     },
     getUserInfo () {
       let that = this;
