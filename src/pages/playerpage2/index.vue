@@ -17,6 +17,7 @@
               <view :class="['rotate-disk', pauseStatus === false ? 'rotate-360' : 'rotate-360-paused']">
                 <image class="poster" v-if="curPlayList[audioIndex]"  :src="curPlayList[audioIndex].imageUrl"></image>
               </view>
+              <text v-if="isShowDesc && curPlayList[audioIndex].info" class="infoClass">{{curPlayList[audioIndex].info}}</text>
             </view>
             <!--操作-->
             <view class="title-container">
@@ -56,6 +57,9 @@
               </div>
               <div class="icon-loop-container" @click="onLoopPlay">
                 <image :src="isPlayLoop ? images.loopEnable: images.loopDisable" class="icon-comment"></image>
+              </div>
+              <div class="icon-info-container" @click="onInfoDsc">
+                <image :src="isShowDesc ? images.iconDscShow: images.iconDscHIde" class="icon-comment"></image>
               </div>
             </view>
           </view>
@@ -139,6 +143,9 @@ import iconComment from './img/icon_comment.png';
 import loopDisable from './img/icon_disable.png';
 import loopEnable from './img/icon_enable.png';
 
+import iconDscHIde from './img/icon_dsc_hide.png';
+import iconDscShow from './img/icon_dsc_show.png';
+
 
 var app = getApp();
 let rotate = 0;
@@ -153,6 +160,7 @@ export default {
       windowHeight: 0,
       pauseStatus: true,
       isPlayLoop: false,
+      isShowDesc: false,
       listShow: false,
       listChannelSong: false,
       timer: '',
@@ -167,7 +175,9 @@ export default {
         iconIcon,
         iconComment,
         loopDisable,
-        loopEnable
+        loopEnable,
+        iconDscHIde,
+        iconDscShow
       },
       curPlayList:[
       ],
@@ -185,7 +195,7 @@ export default {
     }
     return {
       title: '只需要一段音频就能减缓病痛，这里有一封无忧地的邀请函。',
-      path: '/pages/mainpage/main?id=123'
+      path: '/pages/mainpage/main?id_=' + (getApp().userInfo ? getApp().userInfo.id : 0)
     }
   },
   created () {
@@ -197,14 +207,10 @@ export default {
   onHide() {
     this.listShow = false;
     this.listChannelSong = false;
-  },
-  onTabItemTap() {
-    this.listShow = false;
+    app.showChannelList = false;
   },
   onShow(){
     if (app.showChannelList) {
-      app.showChannelList = false;
-      this.listChannelSong = false;
       this.listShow = true;
     }
 
@@ -242,6 +248,9 @@ export default {
     },
     onLoopPlay() {
       this.isPlayLoop = !this.isPlayLoop;
+    },
+    onInfoDsc() {
+      this.isShowDesc = !this.isShowDesc;
     },
     bindConfirm(event) {
       let that = this;
@@ -391,6 +400,7 @@ export default {
     },
     bindTapChoose: function(item, e) {
       if (!item) return;
+      debugger;
       this.listShow = false;
       let that = this;
       this.fetchPlayList(item.id);
@@ -488,6 +498,18 @@ export default {
     width: 100%;
     filter: blur(50rpx);
   }
+
+  .infoClass {
+    position: absolute;
+    background-color: rgba(51,51,51, 0.7);
+    color: #13BEEC;
+    word-break:break-all;
+    padding: 20rpx;
+    border-radius: 10rpx;
+    margin: 0;
+    margin-top: 20rpx;
+    max-width: 400rpx;
+  }
   /*2*/
   .bg-gray{
     position: absolute;
@@ -508,6 +530,14 @@ export default {
   .icon-loop-container {
     position: absolute;
     left: 120rpx;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .icon-info-container {
+    position: absolute;
+    left: 40rpx;
     display: flex;
     align-items: center;
     flex-direction: column;

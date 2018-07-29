@@ -16,7 +16,7 @@
         <div class="normal-items-title" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
           <text class="normal-items-title-text">{{secondPartData.title}}</text>
 
-          <text class="normal-item-title-more" @click="onJumpMenu">更多专辑</text>
+          <text class="normal-item-title-more" @click="onJumpMenu">查看更多</text>
         </div>
         <div style="overflow: hidden;padding-left:10rpx;padding-right: 20rpx;" v-if="secondPartData && secondPartData.items && secondPartData.items.length > 0">
           <div class="weui-grid_item" v-for="(item, index) in secondPartData.items" @click="onChannelClick(item, $event)">
@@ -77,6 +77,7 @@ import nextIcon from '../playerpage2/img/next.png';
 import preIcon from '../playerpage2/img/prev.png';
 import iconIcon from '../playerpage2/img/icon.png';
 import iconComment from '../playerpage2/img/icon_comment.png';
+import request from  '@/utils/request'
 
 
 var app = getApp();
@@ -160,11 +161,24 @@ export default {
     };
   },
   mounted(){
-
   },
   onHide() {
   },
   onTabItemTap() {
+  },
+  onShow() {
+    try {
+      if (getCurrentPages() && getCurrentPages().length > 0 && getCurrentPages()[0]) {
+        getApp().recommendUserId = getCurrentPages()[0].options.id;
+      }
+      if (app.userInfo && app.userInfo.id) {
+        request.recommendUpload(getApp().recommendUserId, app.userInfo.id, function () {
+          delete getApp().recommendUserId;
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
   },
   methods: {
     onReceiveData(){

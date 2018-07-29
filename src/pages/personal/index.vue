@@ -102,7 +102,7 @@ export default {
     }
     return {
       title: '只需要一段音频就能减缓病痛，这里有一封无忧地的邀请函。',
-      path: '/pages/mainpage/main?id=123'
+      path: '/pages/mainpage/main?id=' + (app.userInfo ? app.userInfo.id  : 0)
     }
   },
   created(){
@@ -136,33 +136,57 @@ export default {
           withShareTicket: true,
           from: "Button"
         })
+      } else if (item && item.id == 4) {
+        if (!app.userInfo || !app.userInfo.id) {
+          wx.showToast({
+            title:'请先登录',
+            icon:'none',
+            mask:true
+          })
+          return;
+        }
+
+        wx.navigateTo({
+          "url": "/pages/feedback/main"
+        })
       }
     },
     getUserInfo () {
       let that = this;
-      // 调用登录接口
-      wx.login({
-        success: function (res) {
-          that.onCallbackGetUserInfo(res);
-        }
-      })
+
+      if (getApp().loginRes && getApp.loginRes.code) {
+        that.onCallbackGetUserInfo(getApp().loginRes);
+      } else {
+        wx.login({
+          success: function (res) {
+            getApp().loginRes = res;
+            that.onCallbackGetUserInfo(res);
+          }
+        });
+      }
     },
     clickHandle (msg, ev) {
       console.log('clickHandle:', msg, ev)
     },
-    onCallbackGetUserInfo(res) {
+    onCallbackGetUserInfo(resLogin) {
+      debugger;
       let that = this;
       wx.getUserInfo({
         success: (res) => {
           that.userInfoWX = res.userInfo;
-          console.log(JSON.stringify(res));
           wx.request({
             url: 'https://www.wuyouzhidi.com/login',
             data: {
               imageUrl: that.userInfoWX.avatarUrl,
               name: that.userInfoWX.nickName,
               source: "weixin",
-              login: that.userInfoWX.nickName
+              login: resLogin.code,
+              wx_extra: {
+                signature: res.signature,
+                encryptedData: res.encryptedData,
+                iv: res.iv,
+                code: resLogin.code
+              }
             },
             header: {
               'content-type': 'application/json'
@@ -176,6 +200,8 @@ export default {
                   that.userIcon = that.userInfo.imageUrl;
                   that.nickName = that.userInfo.name;
                   that.testUser = that.userInfo.testUser;
+
+                  debugger;
 
                   that.personBar[2].value = that.userInfo.helpPeopleNum;
                   that.personBar[0].value = that.userInfo.carefreeCoin;

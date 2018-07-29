@@ -1,19 +1,43 @@
 <script>
+import request from './utils/request'
+
 export default {
   created () {
     console && console.log("in APP.vue");
+    let that = this;
+    wx.login({
+      success: function(res) {
+        debugger;
+        if (res.code) {
+          //发起网络请求
+          that.onCallbackGetUserInfo(res);
+          // getApp.loginRes = res;
+        } else {
+          console.log('登录失败！' + res.errMsg)
+        }
+      }
+    });
+  },
+  onShow() {
+    debugger;
   },
   methods: {
     getUserInfo () {
       let that = this;
-      // 调用登录接口
-      wx.login({
-        success: function (res) {
-          that.onCallbackGetUserInfo(res);
-        }
-      })
+
+      if (getApp().loginRes && getApp.loginRes.code) {
+        that.onCallbackGetUserInfo(getApp().loginRes);
+      } else {
+        wx.login({
+          success: function (res) {
+            // getApp().loginRes = res;
+            that.onCallbackGetUserInfo(res);
+          }
+        });
+      }
     },
-    onCallbackGetUserInfo(res) {
+    onCallbackGetUserInfo(resLogin) {
+      debugger;
       let app = getApp();
       let that = this;
       wx.getUserInfo({
@@ -26,7 +50,13 @@ export default {
               imageUrl: that.userInfoWX.avatarUrl,
               name: that.userInfoWX.nickName,
               source: "weixin",
-              login: that.userInfoWX.nickName
+              login: resLogin.code,
+              wx_extra: {
+                signature: res.signature,
+                encryptedData: res.encryptedData,
+                iv: res.iv,
+                code: resLogin.code
+              }
             },
             header: {
               'content-type': 'application/json'
@@ -40,9 +70,12 @@ export default {
                   that.userIcon = that.userInfo.imageUrl;
                   that.nickName = that.userInfo.name;
                   that.testUser = that.userInfo.testUser;
-
-                  that.personBar[2].value = that.userInfo.helpPeopleNum;
-                  that.personBar[0].value = that.userInfo.carefreeCoin;
+                  try {
+                    that.personBar[2].value = that.userInfo.helpPeopleNum;
+                    that.personBar[0].value = that.userInfo.carefreeCoin;
+                  } catch (e) {
+                    console.log(e);
+                  }
                 }
 
                 app.userInfo = that.userInfo;
@@ -52,6 +85,12 @@ export default {
                   testThemeCommentList: result.data.data.testThemeCommentList
                 }
                 app.onReceiveData && app.onReceiveData();
+
+                if (getApp().recommendUserId) {
+                  debugger;
+                  request.recommendUpload(getApp().recommendUserId, app.userInfo.id);
+                  delete getApp().recommendUserId;
+                }
               }
             },
             fail: function (res) {
